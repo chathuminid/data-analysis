@@ -88,9 +88,37 @@ if value_col and cost_col:
         data = pd.merge(data, total_spend, on=customer_col, how='left')
 
         print("Success! Added 'Purchase_count' and 'total_customer_spend' features.")
-        print("\n--- Preview of New Customer data ---")
-        print(data[[customer_col,'purchase_count','total_customer_spend']].head(10))
-    
+
+
+        # 3. Calculate Top 10 VIPs
+        print("\n--- Top 10 VIP Customers ---")
+        top_10_vips = total_spend.sort_values(by="total_customer_spend", ascending=False).head(10)
+        print(top_10_vips.reset_index(drop=True))
+
+        # 4. Generate the VIP Chart immediately
+        print("\n--- Generating VIP Customer Chart ---")
+        plt.figure(figsize=(10, 5))
+        
+        # Convert IDs to text for the chart
+        top_10_vips[customer_col] = top_10_vips[customer_col].astype(str)
+
+        plt.bar(
+            top_10_vips[customer_col], 
+            top_10_vips["total_customer_spend"], 
+            color="gold", 
+            edgecolor="black"
+        )
+
+        plt.title("Top 10 VIP Customers by Total Spend")
+        plt.xlabel("Customer ID")
+        plt.ylabel("Total Spend")
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        
+        plt.savefig("top_10_vip_customers.png")
+        plt.close()
+        print("Success! Created 'top_10_vip_customers.png'")
+        
     else:
         print("Could not find a customer column to analyze habits.")
 
@@ -197,3 +225,38 @@ if date_col:
     print("Success! Created 'sales_trend_over_time.png'")
 else:
     print("Could not find a date column to analyze time trends.")
+
+#7. ---VIP Customer Visualization ---
+print("\n--- Generating VIP Customer Chart ---")
+
+#we only run this if we successfully found customers earlier
+if customer_col and 'top_10_vips' in locals():
+    plt.figure(figsize=(10, 5))
+
+    #convert customer IDs to text so the chart doesn't treat them like standard math numbers
+    top_10_vips[customer_col] = top_10_vips[customer_col].astype(str)
+
+    #Create a gold bar chart
+    plt.bar(
+        top_10_vips[customer_col],
+        top_10_vips["total_customer_spend"],
+        color="gold",
+        edgecolor="black"
+    )
+
+    plt.title("Top 10 VIP Customers by Total spend (€)")
+    plt.xlabel("Customer ID")
+    plt.ylabel("Total spend (€)")
+
+    #Rotate the customer IDs slightly so they don't overlap
+    plt.xticks(rotation=45)
+
+    #Automatically adjust spacing
+    plt.tight_layout()
+
+    #Save the new chart
+    plt.savefig("top_10_vip_customers.png")
+    plt.close()
+    print("Success! Created 'top_10_vip_customer.png'")
+else:
+    print("Could not generate VIP chart: Missing customer data.")
