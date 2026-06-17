@@ -69,6 +69,31 @@ if value_col and cost_col:
     #calculate profit margin percentage safety (avoid dividing by zero)
     data["Profit_margin_%"] = (data["profit"]/data[value_col])*100
 
+    #NEW FEATURE ENGINEERING: Customer Habits
+    customer_col = next(
+        (col for col in data.columns if "customer" in col or "client" in col or "id" in col), None
+    )
+
+    if customer_col:
+        print("\n--- Analyzing Customer Habits ---")
+
+        #1. Purchase Frequency
+        purchase_frequency = data.groupby(customer_col).size().reset_index(name='purchase_count')
+
+        #2. Total spend
+        total_spend = data.groupby(customer_col)[value_col].sum().reset_index(name='total_customer_spend')
+
+        #3.add this new dats to main data(merging)
+        data = pd.merge(data, purchase_frequency, on=customer_col, how='left')
+        data = pd.merge(data, total_spend, on=customer_col, how='left')
+
+        print("Success! Added 'Purchase_count' and 'total_customer_spend' features.")
+        print("\n--- Preview of New Customer data ---")
+        print(data[[customer_col,'purchase_count','total_customer_spend']].head(10))
+    
+    else:
+        print("Could not find a customer column to analyze habits.")
+
     # Group by category to see total performance
     if category_col:
         category_perf = (
